@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { agentStore } from '$lib/stores/agent';
   import { getAgent } from '$lib/auth';
+  import Toast from '$lib/components/Toast.svelte';
 
   let { children }: { children: Snippet } = $props();
 
@@ -14,4 +15,5 @@
   });
 </script>
 
+<Toast />
 {@render children()}

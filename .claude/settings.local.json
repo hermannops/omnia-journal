@@ -6,7 +6,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
       "Bash(npx svelte-kit *)",
       "Bash(pkill -f \"vite dev\")",
-      "Bash(supabase functions *)"
+      "Bash(supabase functions *)",
+      "Bash(curl *)",
+      "Bash(supabase db *)"
     ]
   }
 }
