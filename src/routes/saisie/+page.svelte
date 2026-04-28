@@ -1,11 +1,19 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import RadioGroup, { type RadioOption } from '$lib/components/RadioGroup.svelte';
   import Input from '$lib/components/Input.svelte';
   import Button from '$lib/components/Button.svelte';
   import { referentielsStore } from '$lib/stores/referentiels.svelte';
+  import { loadPointsAFaire, hasPointsAFaire } from '$lib/stores/point-veille.svelte';
   import { createTransaction } from '$lib/db/transactions';
   import { addToast } from '$lib/stores/toast';
   import { formatFCFA } from '$lib/utils/format';
+
+  onMount(async () => {
+    await loadPointsAFaire();
+    if (hasPointsAFaire()) goto('/point-veille', { replaceState: true });
+  });
 
   // ── État du formulaire ──────────────────────────────────────────────
   let operateurId = $state('');

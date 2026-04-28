@@ -2,6 +2,8 @@ import { supabase } from '$lib/supabase';
 import { agentStore } from '$lib/stores/agent';
 import { networkStore } from '$lib/stores/network.svelte';
 import { getAll, remove, update } from '$lib/offline/queue';
+import { getAll as getPendingPointsVeille, removeAll as clearPendingPointsVeille } from '$lib/offline/queue-point-veille';
+import { createPointsVeille } from '$lib/db/point-veille';
 import { get } from 'svelte/store';
 
 const MAX_ATTEMPTS = 5;
@@ -63,5 +65,23 @@ export async function flushQueue(): Promise<void> {
   } finally {
     networkStore.syncing = false;
     // pendingCount est rafraîchi automatiquement par remove()
+  }
+}
+
+export async function flushPointVeilleQueue(): Promise<void> {
+  const agent = get(agentStore);
+  if (!agent || !networkStore.online) return;
+
+  const pending = await getPendingPointsVeille();
+  if (pending.length === 0) return;
+
+  try {
+    await createPointsVeille(agent.id, pending);
+    await clearPendingPointsVeille();
+    // Invalide le store pour forcer un re-check au prochain chargement
+    const { markPointsVeilleValidated } = await import('$lib/stores/point-veille.svelte');
+    markPointsVeilleValidated();
+  } catch {
+    // Laisse la queue en place, sera retentée au prochain flush
   }
 }

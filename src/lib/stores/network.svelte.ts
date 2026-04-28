@@ -8,12 +8,12 @@ export const networkStore = $state({
 
 async function ping(): Promise<boolean> {
   try {
-    await fetch(`${PUBLIC_SUPABASE_URL}/rest/v1/`, {
-      method: 'HEAD',
-      headers: { apikey: PUBLIC_SUPABASE_ANON_KEY },
+    const res = await fetch(`${PUBLIC_SUPABASE_URL}/rest/v1/operateur?select=id&limit=1`, {
+      method: 'GET',
+      headers: { apikey: PUBLIC_SUPABASE_ANON_KEY, 'Accept': 'application/json' },
       signal: AbortSignal.timeout(5000)
     });
-    return true; // toute réponse = réseau joignable
+    return res.status < 500; // toute réponse non-serveur = réseau joignable
   } catch {
     return false;
   }
@@ -23,9 +23,9 @@ async function handleOnline() {
   const reachable = await ping();
   networkStore.online = reachable;
   if (reachable) {
-    // Import dynamique pour éviter la dépendance circulaire au chargement du module
-    const { flushQueue } = await import('$lib/offline/sync');
+    const { flushQueue, flushPointVeilleQueue } = await import('$lib/offline/sync');
     flushQueue();
+    flushPointVeilleQueue();
   }
 }
 

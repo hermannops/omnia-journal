@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
+  import { goto } from '$app/navigation';
   import { agentStore } from '$lib/stores/agent';
   import { networkStore } from '$lib/stores/network.svelte';
+  import { loadPointsAFaire, hasPointsAFaire } from '$lib/stores/point-veille.svelte';
   import { fetchJournalDuJour, fetchTotauxDuJour, fetchSoldesActuels } from '$lib/db/journal';
   import type { LigneJournal, TotalDuJour, SoldeActuel } from '$lib/db/journal';
   import { getAll } from '$lib/offline/queue';
@@ -101,6 +103,11 @@
   let refreshTimer: ReturnType<typeof setInterval>;
 
   onMount(async () => {
+    await loadPointsAFaire();
+    if (hasPointsAFaire()) {
+      goto('/point-veille', { replaceState: true });
+      return;
+    }
     await charger();
     refreshTimer = setInterval(() => {
       if (networkStore.online) charger(true);

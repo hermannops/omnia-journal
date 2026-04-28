@@ -13,32 +13,33 @@ interface OmniaSchema extends DBSchema {
     key: string;
     value: { key: string; data: unknown; cached_at: string };
   };
+  pending_point_veille: {
+    key: number;
+    value: { id?: number; [key: string]: unknown };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<OmniaSchema>> | null = null;
 
 export function openDb(): Promise<IDBPDatabase<OmniaSchema>> {
   if (!dbPromise) {
-    dbPromise = openDB<OmniaSchema>('omnia', 2, {
+    dbPromise = openDB<OmniaSchema>('omnia', 3, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           db.createObjectStore('referentiels', { keyPath: 'key' });
-          db.createObjectStore('pending_transactions', {
-            keyPath: 'id',
-            autoIncrement: true
-          });
+          db.createObjectStore('pending_transactions', { keyPath: 'id', autoIncrement: true });
         }
         if (oldVersion < 2) {
-          if (!db.objectStoreNames.contains('referentiels')) {
+          if (!db.objectStoreNames.contains('referentiels'))
             db.createObjectStore('referentiels', { keyPath: 'key' });
-          }
-          if (!db.objectStoreNames.contains('pending_transactions')) {
-            db.createObjectStore('pending_transactions', {
-              keyPath: 'id',
-              autoIncrement: true
-            });
-          }
-          db.createObjectStore('journal_cache', { keyPath: 'key' });
+          if (!db.objectStoreNames.contains('pending_transactions'))
+            db.createObjectStore('pending_transactions', { keyPath: 'id', autoIncrement: true });
+          if (!db.objectStoreNames.contains('journal_cache'))
+            db.createObjectStore('journal_cache', { keyPath: 'key' });
+        }
+        if (oldVersion < 3) {
+          if (!db.objectStoreNames.contains('pending_point_veille'))
+            db.createObjectStore('pending_point_veille', { keyPath: 'id', autoIncrement: true });
         }
       }
     });

@@ -12,6 +12,7 @@
   import { flushQueue } from '$lib/offline/sync';
   import { networkStore } from '$lib/stores/network.svelte';
   import { initReferentiels } from '$lib/stores/referentiels.svelte';
+  import { loadPointsAFaire } from '$lib/stores/point-veille.svelte';
 
   let { children }: { children: Snippet } = $props();
 
@@ -30,6 +31,10 @@
 
     if (networkStore.online && pending.length > 0) {
       flushQueue();
+    }
+
+    if (a?.role !== 'admin') {
+      loadPointsAFaire(); // fire-and-forget, la guard `loaded` évite les doublons
     }
   });
 </script>
@@ -56,6 +61,11 @@
         >
           Journal
         </a>
+        {#if agent.role === 'admin'}
+          <span class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 cursor-not-allowed select-none">
+            Historique veille
+          </span>
+        {/if}
       </div>
 
       <!-- Agent + déconnexion -->
