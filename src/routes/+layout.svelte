@@ -2,8 +2,9 @@
   import '../app.css';
   import type { Snippet } from 'svelte';
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
   import { agentStore } from '$lib/stores/agent';
-  import { getAgent } from '$lib/auth';
+  import { getAgent, logout } from '$lib/auth';
   import Toast from '$lib/components/Toast.svelte';
   import OfflineBadge from '$lib/components/OfflineBadge.svelte';
   import { initNetwork } from '$lib/stores/network.svelte';
@@ -14,22 +15,19 @@
 
   let { children }: { children: Snippet } = $props();
 
+  let agent = $derived($agentStore);
+  let pathname = $derived(page.url.pathname);
+
   onMount(async () => {
-    // Restaure l'agent depuis le JWT stocké
-    const agent = getAgent();
-    if (agent) agentStore.set(agent);
+    const a = getAgent();
+    if (a) agentStore.set(a);
 
-    // Charge les référentiels (opérateurs + types d'opération)
     await initReferentiels();
-
-    // Initialise le store réseau (ping + event listeners)
     await initNetwork();
 
-    // Lit le nombre de transactions en attente dans IDB
     const pending = await getAll();
     networkStore.pendingCount = pending.length;
 
-    // Si on est en ligne et qu'il y a des transactions en attente → flush immédiat
     if (networkStore.online && pending.length > 0) {
       flushQueue();
     }
@@ -38,4 +36,41 @@
 
 <Toast />
 <OfflineBadge />
+
+{#if agent && pathname !== '/login'}
+  <nav class="bg-white border-b border-gray-100 px-4 py-2 sticky top-0 z-20">
+    <div class="flex items-center justify-between max-w-lg mx-auto">
+      <!-- Liens -->
+      <div class="flex items-center gap-1">
+        <a
+          href="/saisie"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+            {pathname === '/saisie' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-800'}"
+        >
+          Saisie
+        </a>
+        <a
+          href="/journal"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+            {pathname === '/journal' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-800'}"
+        >
+          Journal
+        </a>
+      </div>
+
+      <!-- Agent + déconnexion -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400 hidden sm:block">{agent.nom}</span>
+        <button
+          type="button"
+          onclick={() => logout()}
+          class="text-xs text-red-500 font-medium px-2 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          Déco.
+        </button>
+      </div>
+    </div>
+  </nav>
+{/if}
+
 {@render children()}

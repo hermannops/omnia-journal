@@ -8,7 +8,8 @@
       "Bash(pkill -f \"vite dev\")",
       "Bash(supabase functions *)",
       "Bash(curl *)",
-      "Bash(supabase db *)"
+      "Bash(supabase db *)",
+      "Bash(npx tsc *)"
     ]
   }
 }
