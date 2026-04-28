@@ -1,11 +1,12 @@
 import { browser } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
+import type { LoadEvent } from '@sveltejs/kit';
 import { isTokenValid } from '$lib/auth';
 import { initReferentiels } from '$lib/stores/referentiels.svelte';
 
 export const ssr = false;
 
-export function load({ url }) {
+export function load({ url }: LoadEvent) {
   if (!browser) return {};
 
   const isLoginPage = url.pathname === '/login';

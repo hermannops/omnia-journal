@@ -72,7 +72,7 @@
     loading = true;
 
     try {
-      await createTransaction({
+      const result = await createTransaction({
         operateur_id: operateurId,
         type_operation_id: typeOperationId,
         numero_client: numeroClient.trim() || undefined,
@@ -82,7 +82,11 @@
         observation: observation.trim() || undefined
       });
 
-      addToast({ message: 'Transaction enregistrée', type: 'success' });
+      addToast(
+        result.isPending
+          ? { message: 'Enregistrée hors ligne — sera synchronisée', type: 'info' }
+          : { message: 'Transaction enregistrée', type: 'success' }
+      );
 
       // Reset partiel : garde l'opérateur pour enchaîner les saisies
       typeOperationId = '';
