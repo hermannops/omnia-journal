@@ -7,6 +7,7 @@
   import { getAgent, logout } from '$lib/auth';
   import Toast from '$lib/components/Toast.svelte';
   import OfflineBadge from '$lib/components/OfflineBadge.svelte';
+  import InstallPrompt from '$lib/components/InstallPrompt.svelte';
   import { initNetwork } from '$lib/stores/network.svelte';
   import { getAll } from '$lib/offline/queue';
   import { flushQueue } from '$lib/offline/sync';
@@ -41,6 +42,7 @@
 
 <Toast />
 <OfflineBadge />
+<InstallPrompt />
 
 {#if agent && pathname !== '/login'}
   <nav class="bg-white border-b border-gray-100 px-4 py-2 sticky top-0 z-20">

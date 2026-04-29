@@ -10,24 +10,70 @@ export default defineConfig({
       manifest: {
         name: 'OMNIA Journal',
         short_name: 'OMNIA',
-        description: 'Gestion des opérations Mobile Money',
-        theme_color: '#ffffff',
+        description: 'Gestion des transactions Mobile Money OMNIA',
+        theme_color: '#1e40af',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
         lang: 'fr',
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
+          {
+            src: 'icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icons/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          }
         ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/',
+        navigateFallback: '/offline.html',
         runtimeCaching: [
           {
-            // Les requêtes Supabase ne sont jamais mises en cache par le SW
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/,
+            // Supabase API — jamais en cache
+            urlPattern: /^https:\/\/.*\.supabase\.co\/(rest|functions|auth)\//,
             handler: 'NetworkOnly'
+          },
+          {
+            // Assets statiques (JS, CSS, fonts) — cache en premier
+            urlPattern: /\.(?:js|css|woff2?)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
+          {
+            // Images — cache en premier
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
+          {
+            // Pages SvelteKit — réseau d'abord avec fallback cache
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 7 }
+            }
           }
         ]
       },
