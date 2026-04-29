@@ -8,7 +8,8 @@
   const liens = [
     { href: '/admin',              label: 'Dashboard'     },
     { href: '/admin/transactions', label: 'Transactions'  },
-    { href: '/admin/agents',       label: 'Agents'        }
+    { href: '/admin/agents',       label: 'Agents'        },
+    { href: '/admin/export',       label: 'Export'        }
   ];
 </script>
 
@@ -27,9 +28,6 @@
           {lien.label}
         </a>
       {/each}
-      <span class="px-3 py-3 text-sm font-medium text-gray-300 whitespace-nowrap cursor-not-allowed select-none">
-        Export (bientôt)
-      </span>
     </div>
   </div>
 

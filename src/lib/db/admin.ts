@@ -127,6 +127,75 @@ export async function fetchTransactionsAdmin(
   return { data: (data ?? []) as unknown as TransactionAdmin[], count: count ?? 0 };
 }
 
+// ── Export ────────────────────────────────────────────────────────────
+
+export type FiltresExport = {
+  dateDebut: string;
+  dateFin: string;
+  agentId: string;
+  operateurId: string;
+  inclureAnnulees: boolean;
+};
+
+export const EXPORT_LIMIT = 10_000;
+
+export async function fetchExportPreview(
+  f: FiltresExport
+): Promise<{ count: number; montant_total: number }> {
+  let qCount = supabase
+    .from('transaction')
+    .select('id', { count: 'exact', head: true })
+    .gte('horodatage', `${f.dateDebut}T00:00:00`)
+    .lte('horodatage', `${f.dateFin}T23:59:59`);
+
+  let qSum = supabase
+    .from('transaction')
+    .select('montant_total:montant.sum()')
+    .gte('horodatage', `${f.dateDebut}T00:00:00`)
+    .lte('horodatage', `${f.dateFin}T23:59:59`);
+
+  if (f.agentId) { qCount = qCount.eq('agent_id', f.agentId); qSum = qSum.eq('agent_id', f.agentId); }
+  if (f.operateurId) { qCount = qCount.eq('operateur_id', f.operateurId); qSum = qSum.eq('operateur_id', f.operateurId); }
+  if (!f.inclureAnnulees) { qCount = qCount.eq('statut', 'validee'); qSum = qSum.eq('statut', 'validee'); }
+
+  const [{ count, error: e1 }, { data, error: e2 }] = await Promise.all([qCount, qSum]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+
+  return {
+    count: count ?? 0,
+    montant_total: (data?.[0] as unknown as { montant_total: number } | null)?.montant_total ?? 0
+  };
+}
+
+export async function fetchTransactionsForExport(
+  f: FiltresExport
+): Promise<{ data: TransactionAdmin[]; truncated: boolean }> {
+  let q = supabase
+    .from('transaction')
+    .select(
+      `id, horodatage, montant, solde_apres, statut, motif_annulation, annulee_at,
+       numero_client, nom_client,
+       agent:agent_id(nom, numero_agent),
+       operateur:operateur_id(code, nom),
+       type_operation:type_operation_id(code, libelle)`
+    )
+    .gte('horodatage', `${f.dateDebut}T00:00:00`)
+    .lte('horodatage', `${f.dateFin}T23:59:59`)
+    .order('horodatage', { ascending: true })
+    .limit(EXPORT_LIMIT);
+
+  if (f.agentId) q = q.eq('agent_id', f.agentId);
+  if (f.operateurId) q = q.eq('operateur_id', f.operateurId);
+  if (!f.inclureAnnulees) q = q.eq('statut', 'validee');
+
+  const { data, error } = await q;
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as TransactionAdmin[];
+  return { data: rows, truncated: rows.length === EXPORT_LIMIT };
+}
+
 export async function annulerTransaction(
   id: string,
   motif: string,
