@@ -9,7 +9,8 @@
       "Bash(supabase functions *)",
       "Bash(curl *)",
       "Bash(supabase db *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(git -C /Users/hermann/omnia/journal status --short)"
     ]
   }
 }

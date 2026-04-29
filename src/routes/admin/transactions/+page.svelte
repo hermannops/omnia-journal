@@ -110,20 +110,20 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Date début</label>
-        <input type="date" bind:value={filtres.dateDebut}
+        <label for="tx-date-debut" class="block text-xs text-gray-500 mb-1">Date début</label>
+        <input id="tx-date-debut" type="date" bind:value={filtres.dateDebut}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"/>
       </div>
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Date fin</label>
-        <input type="date" bind:value={filtres.dateFin}
+        <label for="tx-date-fin" class="block text-xs text-gray-500 mb-1">Date fin</label>
+        <input id="tx-date-fin" type="date" bind:value={filtres.dateFin}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"/>
       </div>
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Agent</label>
-        <select bind:value={filtres.agentId}
+        <label for="tx-agent" class="block text-xs text-gray-500 mb-1">Agent</label>
+        <select id="tx-agent" bind:value={filtres.agentId}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white">
           <option value="">Tous</option>
           {#each agentsListe as a (a.id)}
@@ -133,8 +133,8 @@
       </div>
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Opérateur</label>
-        <select bind:value={filtres.operateurId}
+        <label for="tx-operateur" class="block text-xs text-gray-500 mb-1">Opérateur</label>
+        <select id="tx-operateur" bind:value={filtres.operateurId}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white">
           <option value="">Tous</option>
           {#each referentielsStore.operateurs as op (op.id)}
@@ -144,8 +144,8 @@
       </div>
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Type d'opération</label>
-        <select bind:value={filtres.typeId}
+        <label for="tx-type" class="block text-xs text-gray-500 mb-1">Type d'opération</label>
+        <select id="tx-type" bind:value={filtres.typeId}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white">
           <option value="">Tous</option>
           {#each referentielsStore.typesOperation as t (t.id)}
@@ -155,8 +155,8 @@
       </div>
 
       <div>
-        <label class="block text-xs text-gray-500 mb-1">Statut</label>
-        <select bind:value={filtres.statut}
+        <label for="tx-statut" class="block text-xs text-gray-500 mb-1">Statut</label>
+        <select id="tx-statut" bind:value={filtres.statut}
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white">
           <option value="tous">Tous</option>
           <option value="validee">Validées</option>
