@@ -68,9 +68,18 @@
         {/if}
       </div>
 
-      <!-- Agent + déconnexion -->
+      <!-- Agent + admin + déconnexion -->
       <div class="flex items-center gap-2">
         <span class="text-xs text-gray-400 hidden sm:block">{agent.nom}</span>
+        {#if agent.role === 'admin'}
+          <a
+            href="/admin"
+            class="text-xs font-medium px-2 py-1.5 rounded-lg transition-colors
+              {pathname.startsWith('/admin') ? 'bg-purple-100 text-purple-700' : 'text-purple-600 hover:bg-purple-50'}"
+          >
+            Admin
+          </a>
+        {/if}
         <button
           type="button"
           onclick={() => logout()}
