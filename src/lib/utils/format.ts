@@ -2,7 +2,7 @@ const formatterFCFA = new Intl.NumberFormat('fr-FR');
 
 export function formatFCFA(montant: number | bigint): string {
   const n = typeof montant === 'bigint' ? Number(montant) : montant;
-  return formatterFCFA.format(n) + '\u00a0F';
+  return formatterFCFA.format(n) + '\u00a0F CFA';
 }
 
 export function formatHeure(date: Date | string): string {
