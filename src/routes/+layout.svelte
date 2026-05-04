@@ -9,22 +9,45 @@
   import Toast from '$lib/components/Toast.svelte';
   import OfflineBadge from '$lib/components/OfflineBadge.svelte';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
+  import ZeroActiviteModal from '$lib/components/ZeroActiviteModal.svelte';
   import { initNetwork } from '$lib/stores/network.svelte';
   import { getAll } from '$lib/offline/queue';
   import { flushQueue } from '$lib/offline/sync';
   import { networkStore } from '$lib/stores/network.svelte';
   import { initReferentiels } from '$lib/stores/referentiels.svelte';
   import { loadPointsAFaire } from '$lib/stores/point-veille.svelte';
+  import { verifierConfirmationDuJour, compterTransactionsDuJour } from '$lib/db/zero-activite';
 
   let { children }: { children: Snippet } = $props();
 
   let agent = $derived($agentStore);
   let pathname = $derived(page.url.pathname);
   let sidebarOpen = $state(false);
+  let zeroActiviteOpen = $state(false);
 
   function handleLogout() {
     logout();
     goto('/login');
+  }
+
+  async function verifierZeroActivite(agentId: string) {
+    const heure = new Date().getHours();
+    if (heure < 19) return;
+
+    const snooze = sessionStorage.getItem('zero_activite_snooze');
+    if (snooze && Date.now() - Number(snooze) < 30 * 60 * 1000) return;
+
+    try {
+      const [dejaConfirme, nbTransactions] = await Promise.all([
+        verifierConfirmationDuJour(agentId),
+        compterTransactionsDuJour(agentId)
+      ]);
+      if (!dejaConfirme && nbTransactions === 0) {
+        zeroActiviteOpen = true;
+      }
+    } catch {
+      // silencieux — ne pas bloquer l'app
+    }
   }
 
   onMount(async () => {
@@ -43,6 +66,7 @@
 
     if (a?.role !== 'admin') {
       loadPointsAFaire();
+      if (a) verifierZeroActivite(a.id);
     }
   });
 </script>
@@ -52,6 +76,11 @@
 <InstallPrompt />
 
 {#if agent && pathname !== '/login'}
+  <ZeroActiviteModal
+    bind:open={zeroActiviteOpen}
+    agentId={agent.id}
+  />
+
   <!-- Overlay mobile -->
   {#if sidebarOpen}
     <button

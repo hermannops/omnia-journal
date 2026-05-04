@@ -4,12 +4,15 @@
     fetchStatsAdmin, fetchVolumeParOperateur7j, fetchDernieresTransactions
   } from '$lib/db/admin';
   import type { StatsAdmin, VolumeOperateur, TransactionAdmin } from '$lib/db/admin';
+  import { fetchEtatJournee7j } from '$lib/db/zero-activite';
+  import type { EtatJourneeAgent } from '$lib/db/zero-activite';
   import { formatFCFA, formatDate, formatHeure } from '$lib/utils/format';
   import Button from '$lib/components/Button.svelte';
 
   let stats = $state<{ jour: StatsAdmin; semaine: StatsAdmin; mois: StatsAdmin } | null>(null);
   let volumes = $state<VolumeOperateur[]>([]);
   let dernieres = $state<TransactionAdmin[]>([]);
+  let etatJournee = $state<EtatJourneeAgent[]>([]);
   let loading = $state(true);
   let erreur = $state('');
 
@@ -21,19 +24,33 @@
     loading = true;
     erreur = '';
     try {
-      const [s, v, d] = await Promise.all([
+      const [s, v, d, e] = await Promise.all([
         fetchStatsAdmin(),
         fetchVolumeParOperateur7j(),
-        fetchDernieresTransactions(5)
+        fetchDernieresTransactions(5),
+        fetchEtatJournee7j()
       ]);
       stats = s;
       volumes = v;
       dernieres = d;
+      etatJournee = e;
     } catch (e) {
       erreur = e instanceof Error ? e.message : 'Erreur de chargement';
     } finally {
       loading = false;
     }
+  }
+
+  function joursUniques(data: EtatJourneeAgent[]): string[] {
+    return [...new Set(data.map(r => r.date_concernee))].sort((a, b) => b.localeCompare(a));
+  }
+
+  function agentsUniques(data: EtatJourneeAgent[]): string[] {
+    return [...new Set(data.map(r => r.agent_nom))].sort();
+  }
+
+  function etatPour(data: EtatJourneeAgent[], agentNom: string, date: string): EtatJourneeAgent | undefined {
+    return data.find(r => r.agent_nom === agentNom && r.date_concernee === date);
   }
 
   onMount(charger);
@@ -55,6 +72,57 @@
   {#if loading && !stats}
     <p class="text-gray-400 text-sm text-center py-10">Chargement…</p>
   {:else if stats}
+
+    <!-- Activité des 7 derniers jours -->
+    {#if etatJournee.length > 0}
+      {@const jours = joursUniques(etatJournee)}
+      {@const agents = agentsUniques(etatJournee)}
+      <div class="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
+        <div class="px-4 py-3 border-b border-gray-50">
+          <h2 class="text-sm font-semibold text-gray-700">Activité des 7 derniers jours</h2>
+        </div>
+        <table class="w-full text-xs min-w-[480px]">
+          <thead class="bg-gray-50 text-gray-500">
+            <tr>
+              <th class="text-left px-4 py-2 font-medium">Agent</th>
+              {#each jours as j}
+                <th class="text-center px-2 py-2 font-medium whitespace-nowrap">
+                  {new Date(j + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                </th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {#each agents as nom}
+              <tr>
+                <td class="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">{nom}</td>
+                {#each jours as j}
+                  {@const e = etatPour(etatJournee, nom, j)}
+                  <td class="px-2 py-3 text-center">
+                    {#if !e || e.etat === 'inconnu'}
+                      <span class="inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-600 font-medium">
+                        Pas d'info
+                      </span>
+                    {:else if e.etat === 'activite'}
+                      <span class="inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium whitespace-nowrap">
+                        {e.nb_transactions} opé.
+                      </span>
+                    {:else}
+                      <span
+                        class="inline-block px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium whitespace-nowrap"
+                        title={e.zero_confirmee_at ? 'Confirmé à ' + new Date(e.zero_confirmee_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      >
+                        Zéro ✓
+                      </span>
+                    {/if}
+                  </td>
+                {/each}
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
 
     <!-- Grille statistiques -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
